@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: bianpovisualization
+
+influx:
+  url: http://localhost:8086
+  data_bucket: BianpoData
+  map_bucket: BianpoMap
+  token: qKXw4aCR53fKFq_IuI2dMtuc3VvX1iRaft7pXRcXWSx4-VqhQ8k_gY5c4QGiXGQKj5NadqIZobHf4T77KLzK6Q==
+  org: FHZN
+
+fhzn:
+  username: 15691610692
+  password: a15691610692
+  token_url: http://xmnengjia.com/sdLamp/api/external/accessToken
+  list_url: http://xmnengjia.com/sdLamp/api/external/deviceList
+  update_url: http://xmnengjia.com/sdLamp/api/external/updateStatus
+  get_url: http://xmnengjia.com/sdLamp/api/external/deviceStatus
