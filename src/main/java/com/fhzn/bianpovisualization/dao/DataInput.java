@@ -6,6 +6,7 @@ import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,15 +20,18 @@ public class DataInput {
     @Value("${influx.org}")
     String org;
 
+    @Retryable
     public InfluxDBClient initclient() {
         InfluxDBClient client = InfluxDBClientFactory.create(url, token.toCharArray(), org, bucket);
         return client;
     }
 
+    @Retryable
     public void closeclient(InfluxDBClient client){
         client.close();
     }
 
+    @Retryable
     public void save(Device data, InfluxDBClient client) {
         Point point = Point.measurement("device_data") // 指定测量名
                 .addTag("device_serial", data.getDeviceSerial())

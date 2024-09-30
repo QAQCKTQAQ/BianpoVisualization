@@ -10,6 +10,7 @@ import com.fhzn.bianpovisualization.util.DeviceStatusUpdater;
 import com.influxdb.client.InfluxDBClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 public class CollectionService {
 
     private boolean collecting = false;
+    private ScheduledExecutorService scheduler;
 
     @Value("${fhzn.username}")
     private String username;
@@ -54,53 +56,25 @@ public class CollectionService {
     @Autowired
     private DataInput dataInput;
 
-    int maxRetries = 3; // 最大重试次数
-
     public void startCollecting() {
+        if (collecting) {
+            System.out.println("采集已经在进行中");
+            return; // 如果已经在采集，直接返回
+        }
         collecting = true;
-        int attempt = 0;
-        while (attempt < maxRetries) {
-            try {
-                // 第一步：生成 token
-                String token = accessToken.getAccessToken(username, password);
-                // 第二步：通过 token 获取设备列表
-                List<Map<String, Object>> deviceList = deviceListUtil.getDeviceList(token);
-                System.out.println("获取用户列表成功");
-                // 遍历设备列表并更新状态
-                for (Map<String, Object> device : deviceList) {
-                    String serial = (String) device.get("serial"); // 假设设备序列号在设备映射中
-                    int updateAttempt = 0; // 每个设备的重试计数
-
-                    while (updateAttempt < maxRetries) {
-                        try {
-                            boolean success = deviceStatusUpdater.updateStatus(token, serial);
-                            if (success) {
-                                System.out.println("设备 " + serial + " 状态更新成功");
-                            } else {
-                                System.out.println("设备 " + serial + " 状态更新失败");
-                            }
-                            break; // 成功后退出重试循环
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            updateAttempt++;
-                            try {
-                                Thread.sleep(1000); // 等待1秒后重试
-                            } catch (InterruptedException ie) {
-                                Thread.currentThread().interrupt();
-                            }
-                        }
-                    }
-                }
-                break;
-            } catch (Exception e) {
-                attempt++;
-                e.printStackTrace();
-                // TODO: 2024/9/24   重试次数过多错误
-                try {
-                    Thread.sleep(1000); // 等待1秒后重试
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                }
+        // 第一步：生成 token
+        String token = accessToken.getAccessToken(username, password);
+        // 第二步：通过 token 获取设备列表
+        List<Map<String, Object>> deviceList = deviceListUtil.getDeviceList(token);
+        System.out.println("获取用户列表成功");
+        // 遍历设备列表并更新状态
+        for (Map<String, Object> device : deviceList) {
+            String serial = (String) device.get("serial"); // 假设设备序列号在设备映射中
+            boolean success = deviceStatusUpdater.updateStatus(token, serial);
+            if (success) {
+                System.out.println("设备 " + serial + " 状态更新成功");
+            } else {
+                System.out.println("设备 " + serial + " 状态更新失败");
             }
         }
         // 启动定时任务每五分钟调用一次 collectingAndSave
@@ -109,23 +83,21 @@ public class CollectionService {
     }
 
     public void collectingAndSave() {
+        if (!collecting) {
+            return; // 如果停止采集，则不执行
+        }
         int attempt = 0;
         // 创建线程池
-
         ExecutorService executorService = Executors.newFixedThreadPool(20); // 根据需要调整线程池大小
-
-                // 第一步：生成 token
-                String token = accessToken.getAccessToken(username, password);
-                // 第二步：通过 token 获取设备列表
-                List<Map<String, Object>> deviceList = deviceListUtil.getDeviceList(token);
-                System.out.println("获取用户列表成功");
-                // 遍历设备列表并更新状态
-
+        // 第一步：生成 token
+        String token = accessToken.getAccessToken(username, password);
+        // 第二步：通过 token 获取设备列表
+        List<Map<String, Object>> deviceList = deviceListUtil.getDeviceList(token);
+        System.out.println("获取用户列表成功");
 
         // 遍历设备列表并为每个设备启动一个新线程
         for (Map<String, Object> device : deviceList) {
             String serial = (String) device.get("serial");
-
             executorService.submit(() -> {
                 Device updatedDevice = deviceStatusGet.getStatus(token, serial);
                 InfluxDBClient client=dataInput.initclient();
@@ -140,11 +112,21 @@ public class CollectionService {
             // 等待所有任务完成
         }
         System.out.println("一轮采集完成");
-
     }
 
     public void stopCollecting () {
         collecting = false;
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdown(); // 关闭定时任务
+            try {
+                if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
+                    scheduler.shutdownNow(); // 强制关闭
+                }
+            } catch (InterruptedException e) {
+                scheduler.shutdownNow();
+            }
+        }
+        System.out.println("采集已停止");
     }
 
     public boolean isCollecting () {

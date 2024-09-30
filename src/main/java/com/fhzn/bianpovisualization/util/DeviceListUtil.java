@@ -2,6 +2,8 @@ package com.fhzn.bianpovisualization.util;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -25,6 +27,7 @@ public class DeviceListUtil {
         this.restTemplate = restTemplate;
     }
 
+    @Retryable
     public List<Map<String, Object>> getDeviceList(String accessToken) {
         // 准备请求数据
         MultiValueMap<String, String> deviceListData = new LinkedMultiValueMap<>();

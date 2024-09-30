@@ -3,6 +3,7 @@ package com.fhzn.bianpovisualization.util;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -19,6 +20,7 @@ public class DeviceStatusUpdater {
         this.restTemplate = restTemplate;
     }
 
+    @Retryable
     public boolean updateStatus(String accessToken, String serial) {
         try {
             MultiValueMap<String, String> deviceStatusData = new LinkedMultiValueMap<>();

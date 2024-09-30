@@ -6,8 +6,8 @@ influx:
   url: http://localhost:8086
   data_bucket: BianpoData
   map_bucket: BianpoMap
-  token: qKXw4aCR53fKFq_IuI2dMtuc3VvX1iRaft7pXRcXWSx4-VqhQ8k_gY5c4QGiXGQKj5NadqIZobHf4T77KLzK6Q==
-  org: FHZN
+  token: 5__EkSeuhfUWfKR0mcZqbF_yuqPrl5r0IkgYF3GlEpQkg_Jry8u2uCm3CdE0kVbac6fw4sBMgEuwX-EdIGM9GA==
+  org: fhzn
 
 fhzn:
   username: 15691610692

@@ -4,6 +4,7 @@ import com.fhzn.bianpovisualization.POJO.Device;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -20,6 +21,7 @@ public class DeviceStatusGet {
         this.restTemplate = restTemplate;
     }
 
+    @Retryable
     public Device getStatus(String accessToken, String serial) {
         int attempt = 0;
 
@@ -54,6 +56,8 @@ public class DeviceStatusGet {
                     double ledPower = data.getDouble("led_power");
                     double batteryPercent = data.getDouble("battery_percent");
                     long timestamp = data.getLong("timestamp");
+
+
 
                     // 创建并返回 Device 对象
                     return new Device(deviceSerial, solarPanelPower, ledPower, batteryPercent, timestamp);

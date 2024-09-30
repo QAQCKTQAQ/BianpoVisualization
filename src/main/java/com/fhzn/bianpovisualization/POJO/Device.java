@@ -1,4 +1,5 @@
 package com.fhzn.bianpovisualization.POJO;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Device {
     private String deviceSerial;     // 设备编号

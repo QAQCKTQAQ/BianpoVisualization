@@ -13,6 +13,8 @@ import java.util.StringJoiner;
 
 import org.json.JSONObject;  // 需要 org.json 库来解析 JSON
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,6 +22,7 @@ public class AccessToken {
     @Value("${fhzn.token_url}")
     private  String apiUrl;
 
+    @Retryable
     public  String getAccessToken(String username, String password) {
         System.out.println("Username: " + username + ", Password: " + password);
 
@@ -37,8 +40,6 @@ public class AccessToken {
             Map<Object, Object> data = new HashMap<>();
             data.put("username", username);
             data.put("password", password);
-
-
 
             // 将参数转换为 `application/x-www-form-urlencoded` 格式
             StringJoiner sj = new StringJoiner("&");
