@@ -9,6 +9,8 @@ import com.fhzn.bianpovisualization.util.DeviceStatusUpdater;
 import com.influxdb.client.InfluxDBClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -75,15 +77,15 @@ public class DeviceController {
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping("/collection")
+    @EventListener(ApplicationReadyEvent.class)
     public void deviceCollection(){
         collectionService.startCollecting();
     }
 
-    @PostMapping("/close")
-    public void closeCollection(){
-        collectionService.stopCollecting();
-    }
+//    @PostMapping("/close")
+//    public void closeCollection(){
+//        collectionService.stopCollecting();
+//    }
 
     @PostMapping("/data")
     public List<Device> deviceData(@RequestBody Map<String, Object> requestData){
