@@ -78,7 +78,7 @@ public class CollectionService {
             }
         }
         // 启动定时任务每五分钟调用一次 collectingAndSave
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
         scheduler.scheduleAtFixedRate(this::collectingAndSave, 0, 5, TimeUnit.MINUTES);
     }
 

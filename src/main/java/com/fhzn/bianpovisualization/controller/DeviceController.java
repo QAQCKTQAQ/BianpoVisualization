@@ -15,6 +15,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.fhzn.bianpovisualization.POJO.Device;
+import org.springframework.core.io.ClassPathResource;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+
 
 import java.util.List;
 import java.util.Map;
@@ -77,10 +83,47 @@ public class DeviceController {
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void deviceCollection(){
-        collectionService.startCollecting();
+    @GetMapping("/device_map")
+    public ResponseEntity<Map<String, Map<String, String>>> getDeviceMap() {
+        // 存储设备名到设备ID的映射
+        Map<String, String> deviceNameToId = new HashMap<>();
+        // 存储设备ID到设备名的映射
+        Map<String, String> deviceIdToName = new HashMap<>();
+
+        try {
+            // 读取 map.csv 文件
+            ClassPathResource resource = new ClassPathResource("map.csv");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+
+            String line;
+            reader.readLine(); // 跳过表头
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                String deviceName = data[0].trim();
+                String deviceId = data[1].trim();
+
+                // 构建两个映射
+                deviceNameToId.put(deviceName, deviceId);
+                deviceIdToName.put(deviceId, deviceName);
+            }
+            reader.close();
+
+            // 返回包含两个映射的结果
+            Map<String, Map<String, String>> result = new HashMap<>();
+            result.put("deviceNameToId", deviceNameToId);
+            result.put("deviceIdToName", deviceIdToName);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
+//    @EventListener(ApplicationReadyEvent.class)
+//    public void deviceCollection(){
+//        collectionService.startCollecting();
+//    }
 
 //    @PostMapping("/close")
 //    public void closeCollection(){
