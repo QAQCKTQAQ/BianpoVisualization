@@ -3,11 +3,15 @@ spring:
     name: bianpovisualization
 
 influx:
-  url: http://localhost:8086
-  data_bucket: BianpoData
-  map_bucket: BianpoMap
-  token: 5__EkSeuhfUWfKR0mcZqbF_yuqPrl5r0IkgYF3GlEpQkg_Jry8u2uCm3CdE0kVbac6fw4sBMgEuwX-EdIGM9GA==
-  org: fhzn
+#  url: http://localhost:8086
+#  url: http://bianpo_vi_influxdb:8086
+#  data_bucket: BianpoData
+#  token: 8oh3S24OOyyiu2JsFaiDl2QkowByEbLoTfsatgIQCUtZPgv9L3ylLzgWPsjgVoZc-ZrpihsFVmVhM1VMqpQ7Ow==
+#  org: fhzn
+  url: ${INFLUX_URL:http://bianpo_vi_influxdb:8086}  # 默认值
+  data_bucket: ${INFLUX_DATA_BUCKET:BianpoData}  # 默认值
+  token: ${INFLUX_TOKEN:8oh3S24OOyyiu2JsFaiDl2QkowByEbLoTfsatgIQCUtZPgv9L3ylLzgWPsjgVoZc-ZrpihsFVmVhM1VMqpQ7Ow==}  # 默认值
+  org: ${INFLUX_ORG:fhzn}  # 默认值
 
 fhzn:
   username: 15691610692
